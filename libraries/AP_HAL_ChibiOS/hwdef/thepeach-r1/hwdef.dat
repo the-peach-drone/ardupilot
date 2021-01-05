@@ -1,0 +1,10 @@
+# hw definition file for processing by chibios_hwdef.py for the
+# THE PEACH R1 board. This is a fmuv3, with BRD_TYPE forced to 20 and sensors rotation to Roll180
+
+include ../fmuv3/hwdef.dat
+
+env OPTIMIZE -O2
+
+define BOARD_TYPE_DEFAULT 20
+
+define AHRS_ORIENTATION 8
