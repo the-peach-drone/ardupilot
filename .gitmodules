@@ -16,3 +16,6 @@
 [submodule "modules/libcanard"]
 	path = modules/libcanard
 	url = git://github.com/ArduPilot/libcanard.git
+[submodule "modules/mavlink"]
+	path = modules/mavlink
+	url = https://github.com/ThePeach-Drone/mavlink.git
