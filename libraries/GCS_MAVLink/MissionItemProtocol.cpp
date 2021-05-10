@@ -147,7 +147,22 @@ void MissionItemProtocol::handle_mission_request_int(const GCS_MAVLINK &_link,
         return;
     }
 
-    _link.send_message(MAVLINK_MSG_ID_MISSION_ITEM_INT, (const char*)&ret_packet);
+    // KCMVP Encrypt Code
+    if(AP_Notify::flags.isSec == true) {
+        const mavlink_msg_entry_t *entry = mavlink_get_msg_entry(MAVLINK_MSG_ID_MISSION_ITEM_INT);
+        if (entry == nullptr) {
+            return;
+        }
+        _mav_finalize_message_chan_send(MAVLINK_COMM_2,
+                                        entry->msgid,
+                                        (char *)&ret_packet,
+                                        entry->min_msg_len,
+                                        entry->max_msg_len,
+                                        entry->crc_extra);
+    }
+    else {
+        _link.send_message(MAVLINK_MSG_ID_MISSION_ITEM_INT, (const char*)&ret_packet);
+    }
 }
 
 void MissionItemProtocol::handle_mission_request(const GCS_MAVLINK &_link,
@@ -185,7 +200,22 @@ void MissionItemProtocol::handle_mission_request(const GCS_MAVLINK &_link,
         return;
     }
 
-    _link.send_message(MAVLINK_MSG_ID_MISSION_ITEM, (const char*)&ret_packet);
+    // KCMVP Encrypt Code
+    if(AP_Notify::flags.isSec == true) {
+        const mavlink_msg_entry_t *entry = mavlink_get_msg_entry(MAVLINK_MSG_ID_MISSION_ITEM);
+        if (entry == nullptr) {
+            return;
+        }
+        _mav_finalize_message_chan_send(MAVLINK_COMM_2,
+                                        entry->msgid,
+                                        (char *)&ret_packet,
+                                        entry->min_msg_len,
+                                        entry->max_msg_len,
+                                        entry->crc_extra);
+    }
+    else {
+        _link.send_message(MAVLINK_MSG_ID_MISSION_ITEM, (const char*)&ret_packet);
+    }
 }
 
 void MissionItemProtocol::handle_mission_write_partial_list(GCS_MAVLINK &_link,

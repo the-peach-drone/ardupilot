@@ -444,7 +444,10 @@ protected:
     virtual bool allow_disarm() const { return true; }
 
     void manual_override(RC_Channel *c, int16_t value_in, uint16_t offset, float scaler, const uint32_t tnow, bool reversed = false);
-
+	
+	//KCMVP CUSTOM MAVLINK MESSAGE
+    void handle_kcmvp_onoff(const mavlink_message_t &msg);
+	
 private:
 
     void log_mavlink_stats();

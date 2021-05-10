@@ -650,8 +650,17 @@ void GCS_MAVLINK::handle_radio_status(const mavlink_message_t &msg, bool log_rad
  */
 void GCS_MAVLINK::handle_mission_item(const mavlink_message_t &msg)
 {
+	// Mission Denied if Security Mode On
+    if(AP_Notify::flags.isSec == true) {
+        if(get_chan() == MAVLINK_COMM_1) {
+            send_mission_ack(msg, MAV_MISSION_TYPE_MISSION, MAV_MISSION_DENIED);
+            return;
+        }
+    }
+	
     // TODO: rename packet to mission_item_int
     mavlink_mission_item_int_t packet;
+	
     if (msg.msgid == MAVLINK_MSG_ID_MISSION_ITEM) {
         mavlink_mission_item_t mission_item;
         mavlink_msg_mission_item_decode(&msg, &mission_item);
@@ -3839,6 +3848,31 @@ void GCS_MAVLINK::handle_command_long(const mavlink_message_t &msg)
     AP::logger().Write_Command(packet_int, result, true);
 
     hal.util->persistent_data.last_mavlink_cmd = 0;
+}
+
+// HANDLE KCMVP ONOFF FUNC
+void GCS_MAVLINK::handle_kcmvp_onoff(const mavlink_message_t &msg) {
+    mavlink_kcmvp_encrypt_mode_on_off_t packet;
+    mavlink_msg_kcmvp_encrypt_mode_on_off_decode(&msg, &packet);
+
+    const uint8_t _encrypt_on = packet.kcmvp_encrypt_mode_on;
+    const uint8_t _encrypt_off = packet.kcmvp_encrypt_mode_off;
+
+    if(_encrypt_on == 1 && _encrypt_off == 0) {
+        AP_Notify::flags.encrypt_on = true;
+        AP_Notify::flags.encrypt_off = false;
+        AP_Notify::flags.isSec = true;
+    }
+    else if(_encrypt_on == 0 && _encrypt_off == 1) {
+        AP_Notify::flags.encrypt_on = false;
+        AP_Notify::flags.encrypt_off = true;
+        AP_Notify::flags.isSec = false;
+    }
+    else {
+        AP_Notify::flags.encrypt_on = false;
+        AP_Notify::flags.encrypt_off = false;
+        AP_Notify::flags.isSec = false;
+    }
 }
 
 MAV_RESULT GCS_MAVLINK::handle_command_do_set_roi(const Location &roi_loc)

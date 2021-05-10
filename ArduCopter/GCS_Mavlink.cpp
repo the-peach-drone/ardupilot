@@ -1234,6 +1234,34 @@ void GCS_MAVLINK_Copter::handleMessage(const mavlink_message_t &msg)
         }
         break;
     }
+	// KCMVP ADD FUNC
+
+    // KCMVP ONOFF HANDLE
+    case MAVLINK_MSG_ID_KCMVP_ENCRYPT_MODE_ON_OFF:
+    {
+        handle_kcmvp_onoff(msg);
+        break;
+    }
+    // KCMVP ENCRYPT ITEM HANDLE
+    case MAVLINK_MSG_ID_KCMVP_ENCRYPTED_MISSION_ITEM:
+    {
+        if(get_chan() == MAVLINK_COMM_2) {
+            _mavlink_resend_uart(MAVLINK_COMM_1, &msg);
+            break;
+        }
+        else {
+            // Do Nothing
+            break;
+        }
+    }
+	// KCMVP GET PARAMETER
+    case MAVLINK_MSG_ID_KCMVP_SET_ENCRYPT:
+    {
+        AP_Notify::flags.get_parameter = true;
+        break;
+    }
+	
+    // KCMVP ADD FUNC END
 
     case MAVLINK_MSG_ID_ADSB_VEHICLE:
     case MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_CFG:
