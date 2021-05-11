@@ -96,6 +96,12 @@ const AP_ToneAlarm::Tone AP_ToneAlarm::_tones[] {
     { "MFT240L8O4aO5dcO4aO5dcO4aO5dcL16dcdcdcdc", false },
 #define AP_NOTIFY_TONE_NO_SDCARD 30
     { "MNBGG", false },
+#define AP_NOTIFY_TONE_KCMVP_ENCRYPT_START 31
+    { "MFT100L8>B", false},
+#define AP_NOTIFY_TONE_KCMVP_ENCRYPT_STOP 32
+    { "MFT100L8>BB", false},
+#define AP_NOTIFY_TONE_KCMVP_GET_PARAMETER 33
+    { "MFT100L8>cdcd", false},
 };
 
 bool AP_ToneAlarm::init()
@@ -408,6 +414,26 @@ void AP_ToneAlarm::update()
     if (AP_Notify::events.tune_error) {
         play_tone(AP_NOTIFY_TONE_TUNING_ERROR);
         AP_Notify::events.tune_error = 0;
+    }
+	
+	// Tone KCMVP On
+    if(AP_Notify::flags.encrypt_on == true && AP_Notify::flags.encrypt_off == false) {
+        play_tone(AP_NOTIFY_TONE_KCMVP_ENCRYPT_START);
+        AP_Notify::flags.encrypt_on = false;
+        AP_Notify::flags.encrypt_off = false;
+    }
+	
+	// Tone KCMVP Off
+     if(AP_Notify::flags.encrypt_on == false && AP_Notify::flags.encrypt_off == true) {
+         play_tone(AP_NOTIFY_TONE_KCMVP_ENCRYPT_STOP);
+         AP_Notify::flags.encrypt_on = false;
+         AP_Notify::flags.encrypt_off = false;
+    }
+	
+	// Tone KCMVP Get Parameter
+    if(AP_Notify::flags.get_parameter == true) {
+        play_tone(AP_NOTIFY_TONE_KCMVP_GET_PARAMETER);
+        AP_Notify::flags.get_parameter = false;
     }
 }
 
