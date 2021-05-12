@@ -19,3 +19,4 @@
 [submodule "modules/mavlink"]
 	path = modules/mavlink
 	url = https://github.com/ThePeach-Drone/mavlink.git
+	branch = peach1.0_A
