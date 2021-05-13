@@ -42,11 +42,11 @@ vim .bashrc
 
 * 그런 다음 터미널에서 "."명령어을 사용하여 PATH를 로드한다.
 
-  ```bash
-  $ . ~/.bashrc
+```bash
+$ . ~/.bashrc
 
-  $ sudo usermod -a -G dialout $USER
-  ```
+$ sudo usermod -a -G dialout $USER
+```
 
 
 

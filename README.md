@@ -39,15 +39,15 @@ vim .bashrc
   export PATH=$PATH:$HOME/ardupilot/Tools/autotest
   export PATH=/usr/lib/ccache:$PATH
   ```
-  
+
 
 - Then reload your PATH by using the "dot" command in a terminal
 
-  ```bash
-  $ . ~/.bashrc
+```bash
+$ . ~/.bashrc
 
-  $ sudo usermod -a -G dialout $USER
-  ```
+$ sudo usermod -a -G dialout $USER
+```
 
 
 
