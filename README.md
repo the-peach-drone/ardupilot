@@ -1,6 +1,8 @@
 # THE PEACH
 [![thepeach logo](http://gabom1.pagei.gethompy.com/data/editor/2005/ae065791211b1de95f89a5c5c9f796b7_1589185049_9675.png)](http://thepeach.kr)
 
+[🇰🇷](/docs/README-ko.md "Korean")
+
  * Setup the Build Environment on Linux/Ubuntu
 ```bash
 $ sudo apt-get update
@@ -18,7 +20,7 @@ $ Tools/environment_install/install-prereqs-ubuntu.sh -y
 $ . ~/.profile
 ```
   * Add some directories to your search path (Facultative)
-  -- Add the following lines to the end of your ".bashrc" in your home directory (notice the . on the start of that filename. Also, this is a hidden file, so if you're using a file manager, make sure to turn on "show hidden files").
+    -- Add the following lines to the end of your ".bashrc" in your home directory (notice the . on the start of that filename. Also, this is a hidden file, so if you're using a file manager, make sure to turn on "show hidden files").
   ```bash
   export PATH=$PATH:$HOME/ardupilot/Tools/autotest
   export PATH=/usr/lib/ccache:$PATH
