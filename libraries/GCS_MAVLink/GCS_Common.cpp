@@ -2686,6 +2686,104 @@ void GCS_MAVLINK::send_timesync()
         );
 }
 
+time_spec GCS_MAVLINK::t1;
+time_spec GCS_MAVLINK::t2;
+time_spec GCS_MAVLINK::t3;
+time_spec GCS_MAVLINK::t4;
+
+void GCS_MAVLINK::handle_ptp_timesync(const mavlink_message_t &msg)
+{
+    mavlink_ptp_timesync_t packet;
+    mavlink_msg_ptp_timesync_decode(&msg, &packet);
+
+    static uint8_t msg_type = PTP_DEFAULT_STATE;
+    msg_type = packet.msg_type;
+
+    switch(msg_type){
+        case PTP_SYNC: {
+            handle_ptp_sync(packet);
+            break;
+        }
+        case PTP_FOLLOW_UP: {
+            handle_ptp_follow_up(packet);
+            break;
+        }
+        case PTP_DELAY_RESPONSE: {
+            handle_ptp_delay_resp(packet);
+            break;
+        }
+        default:
+            break;
+    }
+    
+}
+void GCS_MAVLINK::handle_ptp_sync(mavlink_ptp_timesync_t &packet)
+{
+    uint64_t usec;
+    AP::rtc().get_utc_usec(usec);
+    t2.sec = usec/1000000;
+    t2.nsec = (usec%1000000) * 1000;
+}
+void GCS_MAVLINK::handle_ptp_follow_up(mavlink_ptp_timesync_t &packet)
+{
+    uint64_t usec;
+    t1.sec = packet.time_sec;
+    t1.nsec = packet.time_nsec;
+
+    mavlink_ptp_timesync_t delay_request;
+
+    delay_request.msg_type = PTP_DELAY_REQUEST;
+    delay_request.target_system =255;
+    AP::rtc().get_utc_usec(usec);
+    t3.sec = usec/1000000;
+    t3.nsec = (usec%100000) * 1000;
+    delay_request.time_sec = t3.sec;
+    delay_request.time_nsec = t3.nsec;
+
+    mavlink_msg_ptp_timesync_send(
+        chan,
+        delay_request.msg_type,
+        delay_request.target_system,
+        delay_request.time_sec,
+        delay_request.time_nsec
+    );
+}
+void GCS_MAVLINK::handle_ptp_delay_resp(mavlink_ptp_timesync_t &packet)
+{
+    time_spec tmp;
+    time_spec tmp_l;
+    time_spec tmp_r;
+    time_spec time_offset;
+
+    uint64_t usec;
+    
+    t4.sec = packet.time_sec;
+    t4.nsec = packet.time_nsec;
+
+    AP::rtc().time_sub(&tmp_l, &t2, &t1);
+    AP::rtc().time_sub(&tmp_r, &t4, &t3);
+    AP::rtc().time_sub(&tmp, &tmp_l, &tmp_r);
+
+    time_offset.sec = tmp.sec/2;
+    time_offset.nsec = tmp.nsec/2;
+
+    if(tmp.sec % 2 == 1)
+    {
+        if((long)tmp.sec > 0){
+            time_offset.nsec = (long)tmp.nsec/2 + 500000000;
+        }
+        else{
+            time_offset.nsec = (long)tmp.nsec/2 - 500000000;
+        }
+    }
+    
+    AP::rtc().get_utc_usec(usec);
+    tmp_l.sec = usec/1000000;
+    tmp_l.nsec = (usec%100000) * 1000;
+    AP::rtc().time_sub(&tmp, &tmp_l, &time_offset);
+    usec = (tmp.sec*1000000) + (tmp.nsec/1000);
+    AP::rtc().set_utc_usec(usec, AP_RTC::SOURCE_MAVLINK_SYSTEM_TIME);
+}
 void GCS_MAVLINK::handle_statustext(const mavlink_message_t &msg)
 {
     AP_Logger *logger = AP_Logger::get_singleton();
@@ -3075,6 +3173,9 @@ void GCS_MAVLINK::handle_common_message(const mavlink_message_t &msg)
         break;
     case MAVLINK_MSG_ID_TIMESYNC:
         handle_timesync(msg);
+        break;
+    case MAVLINK_MSG_ID_PTP_TIMESYNC:
+        handle_ptp_timesync(msg);
         break;
     case MAVLINK_MSG_ID_LOG_REQUEST_LIST:
     case MAVLINK_MSG_ID_LOG_REQUEST_DATA:

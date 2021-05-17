@@ -4,6 +4,18 @@
 
 #include <stdint.h>
 
+#define PTP_SYNC 0x00
+#define PTP_FOLLOW_UP 0x08
+#define PTP_DELAY_REQUEST 0x01
+#define PTP_DELAY_RESPONSE 0x09
+#define TAKEOFF_TIME 0x03
+#define PTP_DEFAULT_STATE 255
+
+ struct time_spec {
+	        long	sec;		/* seconds */
+        	long	nsec;	/* and nanoseconds */
+    };
+
 class AP_RTC {
 
 public:
@@ -20,10 +32,10 @@ public:
     // and used in the parameters!
     enum source_type : uint8_t {
         SOURCE_GPS = 0,
-        SOURCE_MAVLINK_SYSTEM_TIME = 1,
+        SOURCE_MAVLINK_SYSTEM_TIME= 1,
         SOURCE_HW = 2,
         SOURCE_NONE,
-    };
+    };  
 
     /*
       get clock in UTC microseconds.  Returns false if it is not available.
@@ -43,6 +55,9 @@ public:
     bool get_local_time(uint8_t &hour, uint8_t &min, uint8_t &sec, uint16_t &ms);
 
     uint32_t get_time_utc(int32_t hour, int32_t min, int32_t sec, int32_t ms);
+
+    void time_add(struct time_spec *output, const struct time_spec *left, const struct time_spec *right);
+    void time_sub(struct time_spec *output, const struct time_spec *left, const struct time_spec *right);
 
     // get singleton instance
     static AP_RTC *get_singleton() {
