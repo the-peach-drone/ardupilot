@@ -370,13 +370,7 @@ protected:
 
     void handle_device_op_read(const mavlink_message_t &msg);
     void handle_device_op_write(const mavlink_message_t &msg);
-
-    void send_timesync();
-    // returns the time a timesync message was most likely received:
-    uint64_t timesync_receive_timestamp_ns() const;
-    // returns a timestamp suitable for packing into the ts1 field of TIMESYNC:
-    uint64_t timesync_timestamp_ns() const;
-    void handle_timesync(const mavlink_message_t &msg);
+    
     struct {
         int64_t sent_ts1;
         uint32_t last_sent_ms;
@@ -385,6 +379,9 @@ protected:
    
     //timestamp
     static struct time_spec t1, t2, t3, t4;
+
+    //round trip ime
+    static uint64_t ptp_delay;
 
     //PTP msg handler
     void handle_ptp_timesync(const mavlink_message_t &msg);
