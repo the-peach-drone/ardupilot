@@ -201,6 +201,64 @@ uint32_t AP_RTC::get_time_utc(int32_t hour, int32_t min, int32_t sec, int32_t ms
     return static_cast<uint32_t>(total_delay_ms);
 }
 
+void AP_RTC::time_add(struct time_spec *output, const struct time_spec *left, const struct time_spec *right)
+{
+    long sec = left->sec + right->sec;
+    long nsec = left->nsec + right->nsec;
+
+    if(sec>0 && nsec<0){
+        nsec += AP_NSEC_PER_SEC;
+        sec--;
+    }
+    if(sec<=0 && nsec < -(long)AP_NSEC_PER_SEC)
+    {
+        nsec += AP_NSEC_PER_SEC;
+        sec--;
+    }
+
+    if(nsec >= (long)AP_NSEC_PER_SEC)
+    {
+        nsec -= AP_NSEC_PER_SEC;
+        sec++;
+    }
+
+    output->sec = sec;
+    output->nsec = nsec;
+}
+
+void AP_RTC::time_sub(struct time_spec *output, const struct time_spec *left, const struct time_spec *right)
+{
+    long sec = left->sec - right->sec;
+    long nsec = left->nsec - right->nsec;
+
+    if(left->sec >= 0 && left->nsec>=0)
+    {
+        if((sec < 0 && nsec > 0) || (sec > 0 && nsec >= (long)AP_NSEC_PER_SEC))
+        {
+            nsec -= AP_NSEC_PER_SEC;
+            sec++;
+        }
+        if(sec>0 && nsec<0){
+            nsec += AP_NSEC_PER_SEC;
+            sec--;
+        }
+
+    }
+    else{
+        if(nsec <= -(long)AP_NSEC_PER_SEC || nsec >= (long)AP_NSEC_PER_SEC)
+        {
+            nsec += (long)AP_NSEC_PER_SEC;
+            sec--;
+        }
+        if((sec < 0 && nsec > 0))
+        {
+            nsec -= (long)AP_NSEC_PER_SEC;
+            sec++;
+        }
+    }
+    output->sec = sec;
+    output->nsec = nsec;
+}
 
 // singleton instance
 AP_RTC *AP_RTC::_singleton;

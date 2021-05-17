@@ -1370,15 +1370,6 @@ GCS_MAVLINK::update_receive(uint32_t max_time_us)
 
     const uint32_t tnow = AP_HAL::millis();
 
-    // send a timesync message every 10 seconds; this is for data
-    // collection purposes
-    if (tnow - _timesync_request.last_sent_ms > _timesync_request.interval_ms && !is_private()) {
-        if (HAVE_PAYLOAD_SPACE(chan, TIMESYNC)) {
-            send_timesync();
-            _timesync_request.last_sent_ms = tnow;
-        }
-    }
-
     // consider logging mavlink stats:
     if (is_active() || is_streaming()) {
         if (tnow - last_mavlink_stats_logged > 1000) {
@@ -2597,48 +2588,37 @@ MAV_RESULT GCS_MAVLINK::handle_rc_bind(const mavlink_command_long_t &packet)
     return MAV_RESULT_ACCEPTED;
 }
 
-uint64_t GCS_MAVLINK::timesync_receive_timestamp_ns() const
+time_spec GCS_MAVLINK::t1;
+time_spec GCS_MAVLINK::t2;
+time_spec GCS_MAVLINK::t3;
+time_spec GCS_MAVLINK::t4;
+uint64_t GCS_MAVLINK::ptp_delay;
+
+void GCS_MAVLINK::handle_ptp_timesync(const mavlink_message_t &msg)
 {
-    uint64_t ret = _port->receive_time_constraint_us(PAYLOAD_SIZE(chan, TIMESYNC));
-    if (ret == 0) {
-        ret = AP_HAL::micros64();
+    if(!(AP::rtc().allowed_types & (1<<AP_RTC::SOURCE_MAVLINK_SYSTEM_TIME))){
+        return;
     }
-    return ret*1000LL;
-}
+    mavlink_ptp_timesync_t packet;
+    mavlink_msg_ptp_timesync_decode(&msg, &packet);
 
-uint64_t GCS_MAVLINK::timesync_timestamp_ns() const
-{
-    // we add in our own system id try to ensure we only consider
-    // responses to our own timesync request messages
-    return AP_HAL::micros64()*1000LL + mavlink_system.sysid;
-}
+    static uint8_t msg_type = PTP_DEFAULT_STATE;
+    msg_type = packet.msg_type;
 
-/*
-  return a timesync request
-  Sends back ts1 as received, and tc1 is the local timestamp in usec
- */
-void GCS_MAVLINK::handle_timesync(const mavlink_message_t &msg)
-{
-    // decode incoming timesync message
-    mavlink_timesync_t tsync;
-    mavlink_msg_timesync_decode(&msg, &tsync);
-
-    if (tsync.tc1 != 0) {
-        // this is a response to a timesync request
-        if (tsync.ts1 != _timesync_request.sent_ts1) {
-            // we didn't actually send the request.... or it's a
-            // response to an ancient request...
-            return;
+    switch(msg_type){
+        case PTP_SYNC: {
+            handle_ptp_sync(packet);
+            break;
         }
-        const uint64_t round_trip_time_us = (timesync_receive_timestamp_ns() - _timesync_request.sent_ts1)*0.001f;
-#if 0
-        gcs().send_text(MAV_SEVERITY_INFO,
-                        "timesync response sysid=%u (latency=%fms)",
-                        msg.sysid,
-                        round_trip_time_us*0.001f);
-#endif
-        AP_Logger *logger = AP_Logger::get_singleton();
-        if (logger != nullptr) {
+        case PTP_FOLLOW_UP: {
+            handle_ptp_follow_up(packet);
+            break;
+        }
+        case PTP_DELAY_RESPONSE: {
+            handle_ptp_delay_resp(packet);
+            AP_Logger *logger = AP_Logger::get_singleton();
+            
+            if (logger != nullptr) {
             AP::logger().Write(
                 "TSYN",
                 "TimeUS,SysID,RTT",
@@ -2647,43 +2627,88 @@ void GCS_MAVLINK::handle_timesync(const mavlink_message_t &msg)
                 "QBQ",
                 AP_HAL::micros64(),
                 msg.sysid,
-                round_trip_time_us
+                ptp_delay
                 );
+            }
+
+            break;
         }
-        return;
+        default:
+            break;
     }
-
-    if (!HAVE_PAYLOAD_SPACE(chan, TIMESYNC)) {
-        // drop this timesync request entirely
-        return;
-    }
-
-    // create new timesync struct with tc1 field as system time in
-    // nanoseconds.  The client timestamp is as close as possible to
-    // the time we received the TIMESYNC message.
-    mavlink_timesync_t rsync;
-    rsync.tc1 = timesync_receive_timestamp_ns();
-    rsync.ts1 = tsync.ts1;
-
-    // respond with a timesync message
-    mavlink_msg_timesync_send(
-        chan,
-        rsync.tc1,
-        rsync.ts1
-        );
+    
 }
-
-/*
- * broadcast a timesync message.  We may get multiple responses to this request.
- */
-void GCS_MAVLINK::send_timesync()
+void GCS_MAVLINK::handle_ptp_sync(mavlink_ptp_timesync_t &packet)
 {
-    _timesync_request.sent_ts1 = timesync_timestamp_ns();
-    mavlink_msg_timesync_send(
+    uint64_t usec;
+    AP::rtc().get_utc_usec(usec);
+    t2.sec = usec/1000000;
+    t2.nsec = (usec%1000000) * 1000;
+}
+void GCS_MAVLINK::handle_ptp_follow_up(mavlink_ptp_timesync_t &packet)
+{
+    uint64_t usec;
+    t1.sec = packet.time_sec;
+    t1.nsec = packet.time_nsec;
+
+    mavlink_ptp_timesync_t delay_request;
+
+    delay_request.msg_type = PTP_DELAY_REQUEST;
+    delay_request.target_system =255;
+    AP::rtc().get_utc_usec(usec);
+    t3.sec = usec/1000000;
+    t3.nsec = (usec%100000) * 1000;
+    delay_request.time_sec = t3.sec;
+    delay_request.time_nsec = t3.nsec;
+
+    mavlink_msg_ptp_timesync_send(
         chan,
-        0,
-        _timesync_request.sent_ts1
-        );
+        delay_request.msg_type,
+        delay_request.target_system,
+        delay_request.time_sec,
+        delay_request.time_nsec
+    );
+}
+void GCS_MAVLINK::handle_ptp_delay_resp(mavlink_ptp_timesync_t &packet)
+{
+    time_spec tmp;
+    time_spec tmp_l;
+    time_spec tmp_r;
+    time_spec time_delay;
+    time_spec time_offset;
+
+    uint64_t usec;
+    
+    t4.sec = packet.time_sec;
+    t4.nsec = packet.time_nsec;
+
+    //delay = ((t2-t1) - (t4 - t3))/2
+    AP::rtc().time_sub(&tmp_l, &t2, &t1);
+    AP::rtc().time_sub(&tmp_r, &t4, &t3);
+    AP::rtc().time_sub(&tmp, &tmp_l, &tmp_r);
+
+    time_delay.sec = tmp.sec/2;
+    time_delay.nsec = tmp.nsec/2;
+
+    if(tmp.sec % 2 == 1)
+    {
+        if((long)tmp.sec > 0){
+            time_delay.nsec = (long)tmp.nsec/2 + 500000000;
+        }
+        else{
+            time_delay.nsec = (long)tmp.nsec/2 - 500000000;
+        }
+    }
+    ptp_delay = (time_delay.sec*1000000) + (time_delay.nsec/1000);
+    
+    //offset = t2 - t1 - delay
+    AP::rtc().time_sub(&time_offset, &tmp_l, &time_delay);
+    AP::rtc().get_utc_usec(usec);
+    tmp_l.sec = usec/1000000;
+    tmp_l.nsec = (usec%100000) * 1000;
+    AP::rtc().time_sub(&tmp, &tmp_l, &time_offset);
+    usec = (tmp.sec*1000000) + (tmp.nsec/1000);
+    AP::rtc().set_utc_usec(usec, AP_RTC::SOURCE_MAVLINK_SYSTEM_TIME);
 }
 
 void GCS_MAVLINK::handle_statustext(const mavlink_message_t &msg)
@@ -3073,8 +3098,8 @@ void GCS_MAVLINK::handle_common_message(const mavlink_message_t &msg)
     case MAVLINK_MSG_ID_DEVICE_OP_WRITE:
         handle_device_op_write(msg);
         break;
-    case MAVLINK_MSG_ID_TIMESYNC:
-        handle_timesync(msg);
+    case MAVLINK_MSG_ID_PTP_TIMESYNC:
+        handle_ptp_timesync(msg);
         break;
     case MAVLINK_MSG_ID_LOG_REQUEST_LIST:
     case MAVLINK_MSG_ID_LOG_REQUEST_DATA:
