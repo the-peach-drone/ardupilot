@@ -3,6 +3,9 @@
 
 include ../fmuv3/hwdef.dat
 
+# board ID for firmware load
+APJ_BOARD_ID 212
+
 env OPTIMIZE -O2
 
 define BOARD_TYPE_DEFAULT 20
