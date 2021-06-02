@@ -213,6 +213,7 @@ constexpr int8_t Copter::_failsafe_priorities[7];
 
 void Copter::setup()
 {
+    
     // Load the default values of variables listed in var_info[]s
     AP_Param::setup_sketch_defaults();
 
@@ -221,8 +222,15 @@ void Copter::setup()
 
     init_ardupilot();
 
+        for(int i = 0; i < 200 ; i++)
+    {
+
+        gcs().send_message(MSG_AUTOPILOT_VERSION);
+    }
+
     // initialise the main loop scheduler
     scheduler.init(&scheduler_tasks[0], ARRAY_SIZE(scheduler_tasks), MASK_LOG_PM);
+
 }
 
 void Copter::loop()
