@@ -10,6 +10,11 @@
 
 extern const AP_HAL::HAL& hal;
 
+void GCS::init()
+{
+    mavlink_system.sysid = sysid_this_mav();
+}
+
 void GCS::get_sensor_status_flags(uint32_t &present,
                                   uint32_t &enabled,
                                   uint32_t &health)
