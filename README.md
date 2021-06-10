@@ -13,7 +13,7 @@ $ sudo apt-get update
 
 $ sudo apt-get install git
 
-$ git clone https://github.com/ThePeach-Drone/ardupilot.git
+$ git clone https://github.com/the-peach-drone/ardupilot.git
 
 $ cd ardupilot
 
