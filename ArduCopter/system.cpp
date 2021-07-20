@@ -21,11 +21,13 @@ static void failsafe_check_static()
 
 void Copter::init_ardupilot()
 {
-    // move to copter setup
     // initialise serial port
-    //serial_manager.init_console();
+    serial_manager.init_console();
 
-    
+    hal.console->printf("\n\nInit %s"
+                        "\n\nFree RAM: %u\n",
+                        AP::fwversion().fw_string,
+                        (unsigned)hal.util->available_memory());
 
     //
     // Report firmware version code expect on console (check of actual EEPROM format version is done in load_parameters function)
@@ -33,11 +35,11 @@ void Copter::init_ardupilot()
     report_version();
 
     // load parameters from EEPROM
-
+    load_parameters();
 
     // time per loop - this gets updated in the main loop() based on
     // actual loop rate
-
+    G_Dt = 1.0 / scheduler.get_loop_rate_hz();
 
 #if STATS_ENABLED == ENABLED
     // initialise stats module
@@ -47,17 +49,17 @@ void Copter::init_ardupilot()
     // identify ourselves correctly with the ground station
     mavlink_system.sysid = g.sysid_this_mav;
     
-    // move to copter setup
     // initialise serial ports
-    //serial_manager.init();
+    serial_manager.init();
 
-    
+    // setup first port early to allow BoardConfig to report errors
+    gcs().setup_console();
 
     // Register mavlink_delay_cb, which will run anytime you have
     // more than 5ms remaining in your call to hal.scheduler->delay
     hal.scheduler->register_delay_callback(mavlink_delay_cb_static, 5);
     
-    
+    BoardConfig.init();
 #if HAL_WITH_UAVCAN
     BoardConfig_CAN.init();
 #endif
@@ -86,11 +88,8 @@ void Copter::init_ardupilot()
     
     barometer.init();
 
-        for(int i = 0; i < 100 ; i++)
-    {
-
-        gcs().send_message(MSG_AUTOPILOT_VERSION);
-    }
+    // setup telem slots with serial ports
+    //gcs().setup_uarts();
 
 #if OSD_ENABLED == ENABLED
     osd.init();
@@ -226,6 +225,14 @@ void Copter::init_ardupilot()
     // initialize SmartRTL
     g2.smart_rtl.init();
 #endif
+
+    // setup telem slots with serial ports
+    gcs().setup_uarts();
+    // Send Version Message for Initial Connect Version issue Fix
+    for(int i = 0; i < 100; i++)
+    {
+        gcs().send_message(MSG_AUTOPILOT_VERSION);
+    }
 
     // initialise AP_Logger library
     logger.setVehicle_Startup_Writer(FUNCTOR_BIND(&copter, &Copter::Log_Write_Vehicle_Startup_Messages, void));
