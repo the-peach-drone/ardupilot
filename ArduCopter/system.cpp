@@ -89,7 +89,7 @@ void Copter::init_ardupilot()
     barometer.init();
 
     // setup telem slots with serial ports
-    //gcs().setup_uarts();
+    gcs().setup_uarts();
 
 #if OSD_ENABLED == ENABLED
     osd.init();
@@ -225,14 +225,6 @@ void Copter::init_ardupilot()
     // initialize SmartRTL
     g2.smart_rtl.init();
 #endif
-
-    // setup telem slots with serial ports
-    gcs().setup_uarts();
-    // Send Version Message for Initial Connect Version issue Fix
-    for(int i = 0; i < 100; i++)
-    {
-        gcs().send_message(MSG_AUTOPILOT_VERSION);
-    }
 
     // initialise AP_Logger library
     logger.setVehicle_Startup_Writer(FUNCTOR_BIND(&copter, &Copter::Log_Write_Vehicle_Startup_Messages, void));
