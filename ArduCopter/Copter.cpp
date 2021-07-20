@@ -217,33 +217,8 @@ void Copter::setup()
     // Load the default values of variables listed in var_info[]s
     AP_Param::setup_sketch_defaults();
 
-    // move form system.cpp
-    serial_manager.init_console();
-
-    hal.console->printf("\n\nInit %s"
-                        "\n\nFree RAM: %u\n",
-                        AP::fwversion().fw_string,
-                        (unsigned)hal.util->available_memory());
-
-    load_parameters();
-
-    G_Dt = 1.0 / scheduler.get_loop_rate_hz();
-
-    BoardConfig.init();
-
-    gcs().init();
-    
-    // setup first port early to allow BoardConfig to report errors
-    gcs().setup_console();
-
-    serial_manager.init();
-    // setup telem slots with serial ports
-    gcs().setup_uarts();
-
     // setup storage layout for copter
     StorageManager::set_layout_copter();
-
-
 
     init_ardupilot();
 

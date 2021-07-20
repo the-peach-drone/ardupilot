@@ -36,12 +36,6 @@ private:
     void handle_change_alt_request(AP_Mission::Mission_Command &cmd) override {}
 
 protected:
-    uint8_t sysid_this_mav() const { return 1; }
-
-    GCS_MAVLINK_Dummy *new_gcs_mavlink_backend(GCS_MAVLINK_Parameters &params,
-                                               AP_HAL::UARTDriver &uart) {
-        return new GCS_MAVLINK_Dummy(params, uart);
-    }
 
     uint8_t sysid_my_gcs() const override { return 1; }
 
