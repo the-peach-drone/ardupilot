@@ -55,14 +55,6 @@ void Copter::init_ardupilot()
     // setup first port early to allow BoardConfig to report errors
     gcs().setup_console();
 
-    //added
-    for(int i = 0; i < 100 ; i++)
-    {
-
-        gcs().send_message(MSG_AUTOPILOT_VERSION);
-    }
-
-
     // Register mavlink_delay_cb, which will run anytime you have
     // more than 5ms remaining in your call to hal.scheduler->delay
     hal.scheduler->register_delay_callback(mavlink_delay_cb_static, 5);
@@ -98,12 +90,6 @@ void Copter::init_ardupilot()
 
     // setup telem slots with serial ports
     gcs().setup_uarts();
-
-        for(int i = 0; i < 100 ; i++)
-    {
-
-        gcs().send_message(MSG_AUTOPILOT_VERSION);
-    }
 
 #if OSD_ENABLED == ENABLED
     osd.init();
