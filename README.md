@@ -7,7 +7,7 @@ $ sudo apt-get update
 
 $ sudo apt-get install git
 
-$ git clone https://github.com/ThePeach-Drone/ardupilot.git
+$ git clone https://github.com/the-peach-drone/ardupilot.git
 
 $ cd ardupilot
 
@@ -55,4 +55,4 @@ $ ./waf configure --board thepeach-r1
 $ ./waf copter
 
 ```
--- The "arducopter" binaries should appear in the build/thepeach-r1/bin directory.default/
+-- The "arducopter" binaries should appear in the build/thepeach-r1/bin directory
