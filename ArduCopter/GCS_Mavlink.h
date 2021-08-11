@@ -45,7 +45,7 @@ protected:
     bool allow_disarm() const override;
 
 private:
-
+    bool follower_mode_check = 0;
     void handleMessage(const mavlink_message_t &msg) override;
     void handle_command_ack(const mavlink_message_t &msg) override;
     bool handle_guided_request(AP_Mission::Mission_Command &cmd) override;
