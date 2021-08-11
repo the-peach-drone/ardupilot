@@ -2638,6 +2638,9 @@ void GCS_MAVLINK::handle_ptp_timesync(const mavlink_message_t &msg)
 
             break;
         }
+        case TAKEOFF_TIME: {
+            AP::rtc().takeoff_start_time = packet.time_sec;
+        }
         default:
             break;
     }
