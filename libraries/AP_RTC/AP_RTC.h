@@ -63,9 +63,8 @@ public:
     static AP_RTC *get_singleton() {
         return _singleton;
     }
-
+    uint32_t takeoff_start_time = 0;
 private:
-
     static AP_RTC *_singleton;
 
     source_type rtc_source_type = SOURCE_NONE;

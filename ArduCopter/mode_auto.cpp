@@ -60,7 +60,12 @@ void ModeAuto::run()
     switch (_mode) {
 
     case Auto_TakeOff:
-        takeoff_run();
+        uint64_t get_time;
+        AP::rtc().get_utc_usec(get_time);
+        get_time /= 1000000;
+        if(get_time>=AP::rtc().takeoff_start_time){
+            takeoff_run();
+        }
         break;
 
     case Auto_WP:
