@@ -335,7 +335,7 @@ void MAVLink_routing::handle_heartbeat(mavlink_channel_t in_channel, const mavli
                          (unsigned)msg.sysid,
                          (unsigned)msg.compid);
 #endif
-                _mavlink_resend_uart(channel, &msg);
+                //_mavlink_resend_uart(channel, &msg);
             }
         }
     }
