@@ -101,6 +101,9 @@ public:
     ///     returns false if conversion from location to vector from ekf origin cannot be calculated
     bool set_wp_destination(const Location& destination);
 
+    //turn yaw to next waypoint
+    bool set_yaw_next_wp(const Location& target_loc);//nsh
+
     // returns wp location using location class.
     // returns false if unable to convert from target vector to global
     // coordinates

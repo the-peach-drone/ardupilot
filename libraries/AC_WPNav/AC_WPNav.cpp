@@ -174,6 +174,22 @@ bool AC_WPNav::set_wp_destination(const Location& destination)
     return set_wp_destination(dest_neu, terr_alt);
 }
 
+bool AC_WPNav::set_yaw_next_wp(const Location& target_loc)
+{
+    Vector3f origin = get_wp_destination();
+    
+    Vector3f dest_neu;
+    bool terr_alt;
+
+    // convert destination location to vector
+    if (!get_vector_NEU(target_loc, dest_neu, terr_alt)) {
+        return false;
+    }
+    
+    set_yaw_cd(get_bearing_cd(origin, dest_neu));
+    return true;
+}
+
 bool AC_WPNav::get_wp_destination(Location& destination) const
 {
     Vector3f dest = get_wp_destination();
