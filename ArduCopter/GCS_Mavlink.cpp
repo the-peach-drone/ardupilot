@@ -894,13 +894,16 @@ void GCS_MAVLINK_Copter::handleMessage(const mavlink_message_t &msg)
         mavlink_heartbeat_t packet;
         mavlink_msg_heartbeat_decode(&msg, &packet);
 
-        if(packet.custom_mode == static_cast<uint32_t>(Mode::Number::FOLLOW) && !follower_mode_check){ //if the mode of follower vehicle`s is follow, send gps info(10hz)
-            set_message_interval(33, 100000); //global_position_int(#33)
-            follower_mode_check = 1;
-        }
-        else{
-            set_message_interval(33, -1);
-            follower_mode_check = 0;
+        if(packet.type != MAV_TYPE_GCS)
+        {
+            if(packet.custom_mode == static_cast<uint32_t>(Mode::Number::FOLLOW) && !follower_mode_check){ //if the mode of follower vehicle`s is follow, send gps info(10hz)
+                set_message_interval(33, 100000); //global_position_int(#33)
+                follower_mode_check = 1;
+            }
+            else{
+                set_message_interval(33, -1);
+                follower_mode_check = 0;
+            }
         }
         // We keep track of the last time we received a heartbeat from our GCS for failsafe purposes
         if(msg.sysid != copter.g.sysid_my_gcs) break;
