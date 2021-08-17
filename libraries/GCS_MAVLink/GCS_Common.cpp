@@ -2616,7 +2616,7 @@ void GCS_MAVLINK::handle_ptp_timesync(const mavlink_message_t &msg)
             break;
         }
         case PTP_FOLLOW_UP: {
-            handle_ptp_follow_up(packet);
+            handle_ptp_follow_up(packet, msg.sysid);
             break;
         }
         case PTP_DELAY_RESPONSE: {
@@ -2653,7 +2653,7 @@ void GCS_MAVLINK::handle_ptp_sync(mavlink_ptp_timesync_t &packet)
     t2.sec = usec/1000000;
     t2.nsec = (usec%1000000) * 1000;
 }
-void GCS_MAVLINK::handle_ptp_follow_up(mavlink_ptp_timesync_t &packet)
+void GCS_MAVLINK::handle_ptp_follow_up(mavlink_ptp_timesync_t &packet, uint8_t target_system)
 {
     uint64_t usec;
     t1.sec = packet.time_sec;
@@ -2662,7 +2662,8 @@ void GCS_MAVLINK::handle_ptp_follow_up(mavlink_ptp_timesync_t &packet)
     mavlink_ptp_timesync_t delay_request;
 
     delay_request.msg_type = PTP_DELAY_REQUEST;
-    delay_request.target_system =255;
+    delay_request.target_system = target_system;
+
     AP::rtc().get_utc_usec(usec);
     t3.sec = usec/1000000;
     t3.nsec = (usec%100000) * 1000;

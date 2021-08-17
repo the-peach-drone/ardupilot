@@ -386,7 +386,7 @@ protected:
     //PTP msg handler
     void handle_ptp_timesync(const mavlink_message_t &msg);
     void handle_ptp_sync(mavlink_ptp_timesync_t &packet);
-    void handle_ptp_follow_up(mavlink_ptp_timesync_t &packet);
+    void handle_ptp_follow_up(mavlink_ptp_timesync_t &packet, uint8_t target_system);
     void handle_ptp_delay_resp(mavlink_ptp_timesync_t &packet);
 
     void handle_statustext(const mavlink_message_t &msg);
