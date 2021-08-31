@@ -276,7 +276,7 @@ void AP_Follow::handle_msg(const mavlink_message_t &msg)
 
     // decode global-position-int message
     if (msg.msgid == MAVLINK_MSG_ID_GLOBAL_POSITION_INT) {
-        gcs().send_text(MAV_SEVERITY_INFO, "gps");
+        //gcs().send_text(MAV_SEVERITY_INFO, "gps");
         // get estimated location and velocity (for logging)
         Location loc_estimate{};
         Vector3f vel_estimate;

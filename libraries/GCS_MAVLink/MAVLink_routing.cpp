@@ -144,7 +144,8 @@ bool MAVLink_routing::check_and_forward(mavlink_channel_t in_channel, const mavl
         if ((GCS_MAVLINK::is_private(routes[i].channel)) &&
             (target_system != routes[i].sysid ||
              target_component != routes[i].compid)) {
-            continue;
+            if(msg.msgid != MAVLINK_MSG_ID_GLOBAL_POSITION_INT)
+                continue;
         }
 
         if (broadcast_system || (target_system == routes[i].sysid &&
@@ -335,7 +336,7 @@ void MAVLink_routing::handle_heartbeat(mavlink_channel_t in_channel, const mavli
                          (unsigned)msg.sysid,
                          (unsigned)msg.compid);
 #endif
-                //_mavlink_resend_uart(channel, &msg);
+                _mavlink_resend_uart(channel, &msg);
             }
         }
     }

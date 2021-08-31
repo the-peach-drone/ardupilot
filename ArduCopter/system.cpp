@@ -264,6 +264,8 @@ void Copter::init_ardupilot()
     // flag that initialisation has completed
     ap.initialised = true;
 
+    GCS_MAVLINK::set_channel_private(MAVLINK_COMM_2);
+
 #if AP_PARAM_KEY_DUMP
     AP_Param::show_all(hal.console, true);
 #endif
