@@ -747,9 +747,10 @@ void ModeAuto::takeoff_run()
 void ModeAuto::wp_run()
 {
     bool is_nav_cmd = false;
-
+    
     //if reached target waypoint location, turn yaw to next target waypoint location
     if ( wp_nav->reached_wp_destination() ) {
+        gcs().send_text(MAV_SEVERITY_INFO, "t");
         AP_Mission::Mission_Command current_cmd, next_cmd;
         current_cmd = mission.get_current_nav_cmd();
         is_nav_cmd = mission.get_next_nav_cmd(current_cmd.index+1, next_cmd);
