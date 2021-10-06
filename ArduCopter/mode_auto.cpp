@@ -746,22 +746,6 @@ void ModeAuto::takeoff_run()
 //      called by auto_run at 100hz or more
 void ModeAuto::wp_run()
 {
-    bool is_nav_cmd = false;
-    
-    //if reached target waypoint location, turn yaw to next target waypoint location
-    if ( wp_nav->reached_wp_destination() ) {
-        gcs().send_text(MAV_SEVERITY_INFO, "t");
-        AP_Mission::Mission_Command current_cmd, next_cmd;
-        current_cmd = mission.get_current_nav_cmd();
-        is_nav_cmd = mission.get_next_nav_cmd(current_cmd.index+1, next_cmd);
-        
-        if(is_nav_cmd) //if the cmd does not have a position(it means "do command"), don`t call set_yaw_next_wp()
-        {
-            Location target_loc = loc_from_cmd(next_cmd);
-            wp_nav->set_yaw_next_wp(target_loc);    
-        }
-    } 
-
     // process pilot's yaw input
     float target_yaw_rate = 0;
     if (!copter.failsafe.radio) {
