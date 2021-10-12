@@ -133,10 +133,21 @@ bool ModeAuto::loiter_start()
 }
 
 // auto_rtl_start - initialises RTL in AUTO flight mode
-void ModeAuto::rtl_start()
+void ModeAuto::rtl_start() 
 {
     _mode = Auto_RTL;
 
+    if(copter.g.sysid_this_mav == 1) //방제 드론 rtl 시에
+    {
+        mavlink_msg_command_long_send(MAVLINK_COMM_2,
+                                    2, //target: 모니터링 기체
+                                    1,
+                                    MAV_CMD_NAV_RETURN_TO_LAUNCH,
+                                    0,
+                                    0, 0,
+                                    0, 
+                                    0, 0, 0, 0);
+    }
     // call regular rtl flight mode initialisation and ask it to ignore checks
     copter.mode_rtl.init(true);
 }
