@@ -147,6 +147,7 @@ void ModeAuto::rtl_start()
                                     0, 0,
                                     0, 
                                     0, 0, 0, 0);
+        SRV_Channels::set_output_pwm_chan(CH_9, 1100); //nsh
     }
     // call regular rtl flight mode initialisation and ask it to ignore checks
     copter.mode_rtl.init(true);
@@ -1129,7 +1130,8 @@ Location ModeAuto::loc_from_cmd(const AP_Mission::Mission_Command& cmd) const
 void ModeAuto::do_nav_wp(const AP_Mission::Mission_Command& cmd)
 {
     Location target_loc = loc_from_cmd(cmd);
-
+    if(cmd.index > 2 && copter.g.sysid_this_mav == 1)
+        SRV_Channels::set_output_pwm_chan(CH_9, 1300); //nsh
     // this will be used to remember the time in millis after we reach or pass the WP.
     loiter_time = 0;
     // this is the delay, stored in seconds
@@ -1818,9 +1820,12 @@ bool ModeAuto::verify_nav_wp(const AP_Mission::Mission_Command& cmd)
         loiter_time = millis();
 		if (loiter_time_max > 0) {
 			// play a tone
-			AP_Notify::events.waypoint_complete = 1;
+			if(copter.g.sysid_this_mav == 1)
+                SRV_Channels::set_output_pwm_chan(CH_9, 1700); //vehicle 1 //nsh
+            
+            AP_Notify::events.waypoint_complete = 1;
 			}
-    }
+    }   
 
     // check if timer has run out
     if (((millis() - loiter_time) / 1000) >= loiter_time_max) {
@@ -1828,6 +1833,9 @@ bool ModeAuto::verify_nav_wp(const AP_Mission::Mission_Command& cmd)
 			// play a tone
 			AP_Notify::events.waypoint_complete = 1;
 			}
+        if(copter.g.sysid_this_mav == 1)
+            SRV_Channels::set_output_pwm_chan(CH_9, 1100); //nsh
+        
         gcs().send_text(MAV_SEVERITY_INFO, "Reached command #%i",cmd.index);
         return true;
     }

@@ -911,6 +911,7 @@ void GCS_MAVLINK_Copter::handleMessage(const mavlink_message_t &msg)
                 }
             }
         }
+    
         // We keep track of the last time we received a heartbeat from our GCS for failsafe purposes
         if(msg.sysid != copter.g.sysid_my_gcs) break;
         copter.failsafe.last_heartbeat_ms = AP_HAL::millis();
