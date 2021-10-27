@@ -264,8 +264,14 @@ void Copter::init_ardupilot()
     // flag that initialisation has completed
     ap.initialised = true;
 
-    GCS_MAVLINK::set_channel_private(MAVLINK_COMM_2);
-    SRV_Channels::set_output_pwm_chan(CH_9, 1100); //nsh
+    if(copter.g.sysid_this_mav==1)
+    {
+        GCS_MAVLINK::set_channel_private(MAVLINK_COMM_2);
+        SRV_Channels::set_output_pwm_chan(CH_9, 1100); //nsh
+    }
+    else if(copter.g.sysid_this_mav==17)
+        GCS_MAVLINK::set_channel_private(MAVLINK_COMM_3);
+    
 #if AP_PARAM_KEY_DUMP
     AP_Param::show_all(hal.console, true);
 #endif

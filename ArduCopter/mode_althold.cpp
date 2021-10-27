@@ -21,6 +21,7 @@ bool ModeAltHold::init(bool ignore_checks)
 // should be called at 100hz or more
 void ModeAltHold::run()
 {
+    SRV_Channels::set_output_pwm_chan(CH_9, 1100); //nsh
     float takeoff_climb_rate = 0.0f;
 
     // initialize vertical speeds and acceleration

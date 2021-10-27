@@ -140,7 +140,7 @@ void ModeAuto::rtl_start()
     if(copter.g.sysid_this_mav == 1) //방제 드론 rtl 시에
     {
         mavlink_msg_command_long_send(MAVLINK_COMM_2,
-                                    2, //target: 모니터링 기체
+                                    17, //target: 모니터링 기체
                                     1,
                                     MAV_CMD_NAV_RETURN_TO_LAUNCH,
                                     0,
@@ -657,7 +657,7 @@ bool ModeAuto::verify_command(const AP_Mission::Mission_Command& cmd)
     //
     case MAV_CMD_NAV_TAKEOFF:
         cmd_complete = verify_takeoff();
-        if(cmd_complete && copter.g.sysid_this_mav == 2) //takeoff complete && monitoring drone
+        if(cmd_complete && copter.g.sysid_this_mav == 17) //takeoff complete && monitoring drone
             copter.set_mode(Mode::Number::FOLLOW, ModeReason::MISSION_END);
         break;
 
