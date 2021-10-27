@@ -139,7 +139,7 @@ void ModeAuto::rtl_start()
 
     if(copter.g.sysid_this_mav == 1) //방제 드론 rtl 시에
     {
-        mavlink_msg_command_long_send(MAVLINK_COMM_2,
+        mavlink_msg_command_long_send(MAVLINK_COMM_3,
                                     17, //target: 모니터링 기체
                                     1,
                                     MAV_CMD_NAV_RETURN_TO_LAUNCH,
